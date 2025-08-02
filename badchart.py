@@ -145,39 +145,59 @@ elif chart_type == "Map Chart":
         ])
 
     with col2:
-        st.subheader("✅ Fixed Map Chart")
-        if {'Latitude', 'Longitude'}.issubset(df.columns):
-            try:
-                midpoint = (df['Latitude'].mean(), df['Longitude'].mean())
-                color_by = 'Category' if 'Category' in df.columns else None
-                radius_by = 'Value' if 'Value' in df.columns else None
+    st.subheader("✅ Fixed Map Chart")
+    if {'Latitude', 'Longitude'}.issubset(df.columns):
+        try:
+            # OPTIONAL: Use your own Mapbox token here
+            import pydeck as pdk
+            pdk.settings.mapbox_api_key = "pk.eyJ1IjoibWFwYm94dXNlciIsImEiOiJja2Rla3N2b3IwMHR2MnRxaTJuOGN4c2tjIn0.LjW-d2t8YI_TlM9DxYlz3g"  # Replace with your own token
 
-                layer = pdk.Layer(
-                    "ScatterplotLayer",
-                    data=df,
-                    get_position='[Longitude, Latitude]',
-                    get_fill_color="[180, 0, 200, 140]",
-                    get_radius=30000,
-                    pickable=True,
-                    auto_highlight=True
-                )
-                view_state = pdk.ViewState(
-                    latitude=midpoint[0],
-                    longitude=midpoint[1],
-                    zoom=4,
-                    pitch=0
-                )
-                r = pdk.Deck(
-                    map_style="mapbox://styles/mapbox/light-v9",
-                    initial_view_state=view_state,
-                    layers=[layer],
-                    tooltip={"text": "{Category}: {Value}"} if color_by and radius_by else None
-                )
-                st.pydeck_chart(r)
-            except Exception as e:
-                st.error(f"Error rendering map: {e}")
-        else:
-            st.warning("Missing 'Latitude' and 'Longitude' columns for the improved map.")
+            import hashlib
+
+            def category_to_color(cat):
+                # Convert category to a consistent RGB color
+                hex_color = hashlib.md5(str(cat).encode()).hexdigest()[:6]
+                return [int(hex_color[i:i+2], 16) for i in (0, 2, 4)] + [160]
+
+            if 'Category' in df.columns:
+                df['Color'] = df['Category'].apply(category_to_color)
+            else:
+                df['Color'] = [[180, 0, 200, 140]] * len(df)
+
+            midpoint = (df['Latitude'].mean(), df['Longitude'].mean())
+
+            layer = pdk.Layer(
+                "ScatterplotLayer",
+                data=df,
+                get_position='[Longitude, Latitude]',
+                get_fill_color='Color',
+                get_radius=30000,
+                pickable=True,
+                auto_highlight=True
+            )
+
+            view_state = pdk.ViewState(
+                latitude=midpoint[0],
+                longitude=midpoint[1],
+                zoom=5,
+                pitch=0
+            )
+
+            tooltip = {"text": "{Category}: {Value}"} if 'Category' in df.columns and 'Value' in df.columns else None
+
+            r = pdk.Deck(
+                map_style="mapbox://styles/mapbox/light-v9",
+                initial_view_state=view_state,
+                layers=[layer],
+                tooltip=tooltip
+            )
+
+            st.pydeck_chart(r)
+        except Exception as e:
+            st.error(f"Error rendering map: {e}")
+    else:
+        st.warning("Missing 'Latitude' and 'Longitude' columns for the improved map.")
+
 
 elif chart_type == "Donut Chart":
     st.header("5. Donut Chart")
