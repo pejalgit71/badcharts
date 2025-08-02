@@ -142,7 +142,7 @@ elif chart_type == "Map Chart":
                     pitch=0
                 )
                 r = pdk.Deck(
-                    map_style='mapbox://styles/mapbox/light-v9',
+                    map_style='light',
                     initial_view_state=view_state,
                     layers=[layer],
                     tooltip={"text": "{Category}: {Value}"} if 'Category' in df.columns and 'Value' in df.columns else None
