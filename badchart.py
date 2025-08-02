@@ -103,7 +103,15 @@ elif chart_type == "Map Chart":
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("❌ Bad Map Chart")
-        st.map(df)
+
+        if {'Latitude', 'Longitude'}.issubset(df.columns):
+            try:
+                st.map(df.rename(columns={'Latitude': 'latitude', 'Longitude': 'longitude'}))
+            except Exception as e:
+                st.error("Map could not be rendered. Check Latitude and Longitude values.")
+        else:
+            st.warning("Missing 'Latitude' and 'Longitude' columns for map.")
+
         show_explanations([
             ("No data labels", "Hard to understand what the locations represent."),
             ("No tooltip/info", "User cannot get insight from points."),
@@ -114,7 +122,7 @@ elif chart_type == "Map Chart":
 
     with col2:
         st.subheader("✅ Fixed Map Chart")
-        if 'Latitude' in df.columns and 'Longitude' in df.columns:
+        if {'Latitude', 'Longitude'}.issubset(df.columns):
             layer = pdk.Layer(
                 'ScatterplotLayer',
                 data=df,
@@ -125,8 +133,8 @@ elif chart_type == "Map Chart":
             )
 
             view_state = pdk.ViewState(
-                latitude=4.2105,
-                longitude=101.9758,
+                latitude=df['Latitude'].mean(),
+                longitude=df['Longitude'].mean(),
                 zoom=5,
                 pitch=0
             )
@@ -138,7 +146,8 @@ elif chart_type == "Map Chart":
                 tooltip={"text": "{Category}: {Value}"}
             ))
         else:
-            st.warning("Columns 'Latitude' and 'Longitude' required.")
+            st.warning("Missing 'Latitude' and 'Longitude' columns for the improved map.")
+
 
 elif chart_type == "Donut Chart":
     st.header("5. Donut Chart")
