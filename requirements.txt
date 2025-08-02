@@ -4,4 +4,3 @@ altair
 plotly
 pydeck
 matplotlib
-os
