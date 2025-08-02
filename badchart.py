@@ -90,7 +90,12 @@ elif chart_type == "Line Chart":
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("❌ Bad Line Chart")
-        st.line_chart(df.select_dtypes(include='number').iloc[:, 0])
+        numeric_df = df.select_dtypes(include='number')
+        if numeric_df.shape[1] >= 2:
+            st.line_chart(numeric_df)
+        else:
+            st.warning("Only one numeric column found; cannot show multiple lines.")
+
         show_explanations([
             ("Missing x-axis (e.g. time)", "No trend or time pattern shown."),
             ("No category separation", "Lines are not grouped or distinguished."),
