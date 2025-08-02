@@ -4,15 +4,25 @@ import altair as alt
 import plotly.express as px
 import pydeck as pdk
 import matplotlib.pyplot as plt
+import os
 
 st.set_page_config(layout="wide")
 
 st.title("📉 Bad vs Good Chart Examples")
 
-# uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
-# if uploaded_file is not None:
-df = pd.read_csv("bad_charts_example.csv")
-st.success("CSV loaded successfully!")
+# Load default CSV automatically if no upload provided
+default_csv_path = "sample_data.csv"
+uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
+
+if uploaded_file is not None:
+    df = pd.read_csv(uploaded_file)
+    st.success("CSV loaded successfully!")
+elif os.path.exists(default_csv_path):
+    df = pd.read_csv(default_csv_path)
+    st.info("Using default sample CSV file.")
+else:
+    st.warning("Please upload a CSV file or provide a 'sample_data.csv' in the app directory.")
+    st.stop()
 
 chart_type = st.selectbox("Choose chart type", [
     "Bar Chart", "Pie Chart", "Line Chart", "Map Chart", "Donut Chart"
@@ -78,7 +88,6 @@ elif chart_type == "Pie Chart":
 elif chart_type == "Line Chart":
     st.header("3. Line Chart")
     col1, col2 = st.columns(2)
-
     with col1:
         st.subheader("❌ Bad Line Chart")
         st.line_chart(df.select_dtypes(include='number').iloc[:, 0])
@@ -94,12 +103,10 @@ elif chart_type == "Line Chart":
         st.subheader("✅ Fixed Line Chart")
         if {'Year', 'Value', 'Category'}.issubset(df.columns):
             try:
-                # Ensure Year is numeric
                 df['Year'] = pd.to_numeric(df['Year'], errors='coerce')
-                df = df.dropna(subset=['Year', 'Value'])  # Drop rows with missing year or value
+                df = df.dropna(subset=['Year', 'Value'])
                 df['Year'] = df['Year'].astype(int)
                 df = df.sort_values(by=['Category', 'Year'])
-
                 fig = px.line(
                     df,
                     x='Year',
@@ -108,7 +115,7 @@ elif chart_type == "Line Chart":
                     markers=True,
                     title="Line Chart: Values by Year and Category"
                 )
-                fig.update_traces(line=dict(width=2))  # Thicker lines for visibility
+                fig.update_traces(line=dict(width=2))
                 st.plotly_chart(fig, use_container_width=True)
             except Exception as e:
                 st.error(f"Error rendering line chart: {e}")
@@ -118,7 +125,6 @@ elif chart_type == "Line Chart":
 elif chart_type == "Map Chart":
     st.header("4. Map Chart")
     col1, col2 = st.columns(2)
-
     with col1:
         st.subheader("❌ Bad Map Chart")
         if {'Latitude', 'Longitude'}.issubset(df.columns):
@@ -159,7 +165,7 @@ elif chart_type == "Map Chart":
                     pitch=0
                 )
                 r = pdk.Deck(
-                    map_style='light',
+                    map_style='mapbox://styles/mapbox/light-v9',
                     initial_view_state=view_state,
                     layers=[layer],
                     tooltip={"text": "{Category}: {Value}"} if 'Category' in df.columns and 'Value' in df.columns else None
@@ -169,7 +175,6 @@ elif chart_type == "Map Chart":
                 st.error(f"Error rendering map: {e}")
         else:
             st.warning("Missing 'Latitude' and 'Longitude' columns for the improved map.")
-
 
 elif chart_type == "Donut Chart":
     st.header("5. Donut Chart")
@@ -194,6 +199,3 @@ elif chart_type == "Donut Chart":
             st.plotly_chart(fig)
         else:
             st.warning("Columns 'Category' and 'Value' required.")
-
-# else:
-#     st.info("Please upload a CSV file to begin.")
