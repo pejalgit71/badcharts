@@ -89,14 +89,14 @@ elif chart_type == "Line Chart":
             ("No title", "Purpose of chart is unclear.")
         ])
 
-   with col2:
-    st.subheader("✅ Fixed Line Chart")
-    if 'Year' in df.columns and 'Value' in df.columns and 'Category' in df.columns:
-        fig = px.line(df, x="Year", y="Value", color="Category", markers=True,
-                      title="Line Chart: Values by Year and Category")
-        st.plotly_chart(fig)
-    else:
-        st.warning("Columns 'Year', 'Category', and 'Value' required.")
+    with col2:
+        st.subheader("✅ Fixed Line Chart")
+        if 'Year' in df.columns and 'Value' in df.columns and 'Category' in df.columns:
+            fig = px.line(df, x="Year", y="Value", color="Category", markers=True,
+                          title="Line Chart: Values by Year and Category")
+            st.plotly_chart(fig)
+        else:
+            st.warning("Columns 'Year', 'Category', and 'Value' required.")
 
 elif chart_type == "Map Chart":
     st.header("4. Map Chart")
