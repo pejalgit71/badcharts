@@ -53,7 +53,7 @@ if chart_type == "Bar Chart":
             chart = alt.Chart(df).mark_bar().encode(
                 x=alt.X("Category", title="Category"),
                 y=alt.Y("Value", title="Value"),
-                color=alt.value("steelblue")
+                color=alt.Color("Category", legend=None)
             ).properties(
                 title="Bar Chart of Values by Category"
             )
@@ -149,11 +149,14 @@ elif chart_type == "Map Chart":
         if {'Latitude', 'Longitude'}.issubset(df.columns):
             try:
                 midpoint = (df['Latitude'].mean(), df['Longitude'].mean())
+                color_by = 'Category' if 'Category' in df.columns else None
+                radius_by = 'Value' if 'Value' in df.columns else None
+
                 layer = pdk.Layer(
                     "ScatterplotLayer",
                     data=df,
-                    get_position="[Longitude, Latitude]",
-                    get_fill_color="[200, 30, 0, 160]",
+                    get_position='[Longitude, Latitude]',
+                    get_fill_color="[180, 0, 200, 140]",
                     get_radius=30000,
                     pickable=True,
                     auto_highlight=True
@@ -161,14 +164,14 @@ elif chart_type == "Map Chart":
                 view_state = pdk.ViewState(
                     latitude=midpoint[0],
                     longitude=midpoint[1],
-                    zoom=5,
+                    zoom=4,
                     pitch=0
                 )
                 r = pdk.Deck(
-                    map_style='mapbox://styles/mapbox/light-v9',
+                    map_style="mapbox://styles/mapbox/light-v9",
                     initial_view_state=view_state,
                     layers=[layer],
-                    tooltip={"text": "{Category}: {Value}"} if 'Category' in df.columns and 'Value' in df.columns else None
+                    tooltip={"text": "{Category}: {Value}"} if color_by and radius_by else None
                 )
                 st.pydeck_chart(r)
             except Exception as e:
