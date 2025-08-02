@@ -123,28 +123,32 @@ elif chart_type == "Map Chart":
     with col2:
         st.subheader("✅ Fixed Map Chart")
         if {'Latitude', 'Longitude'}.issubset(df.columns):
-            layer = pdk.Layer(
-                'ScatterplotLayer',
-                data=df,
-                get_position='[Longitude, Latitude]',
-                get_radius=50000,
-                get_fill_color='[180, 0, 200, 140]',
-                pickable=True
-            )
-
-            view_state = pdk.ViewState(
-                latitude=df['Latitude'].mean(),
-                longitude=df['Longitude'].mean(),
-                zoom=5,
-                pitch=0
-            )
-
-            st.pydeck_chart(pdk.Deck(
-                map_style='mapbox://styles/mapbox/light-v9',
-                layers=[layer],
-                initial_view_state=view_state,
-                tooltip={"text": "{Category}: {Value}"}
-            ))
+            try:
+                midpoint = (df['Latitude'].mean(), df['Longitude'].mean())
+                layer = pdk.Layer(
+                    "ScatterplotLayer",
+                    data=df,
+                    get_position="[Longitude, Latitude]",
+                    get_fill_color="[200, 30, 0, 160]",
+                    get_radius=30000,
+                    pickable=True,
+                    auto_highlight=True
+                )
+                view_state = pdk.ViewState(
+                    latitude=midpoint[0],
+                    longitude=midpoint[1],
+                    zoom=5,
+                    pitch=0
+                )
+                r = pdk.Deck(
+                    map_style='mapbox://styles/mapbox/light-v9',
+                    initial_view_state=view_state,
+                    layers=[layer],
+                    tooltip={"text": "{Category}: {Value}"} if 'Category' in df.columns and 'Value' in df.columns else None
+                )
+                st.pydeck_chart(r)
+            except Exception as e:
+                st.error(f"Error rendering map: {e}")
         else:
             st.warning("Missing 'Latitude' and 'Longitude' columns for the improved map.")
 
