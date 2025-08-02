@@ -92,7 +92,8 @@ elif chart_type == "Line Chart":
     with col2:
         st.subheader("✅ Fixed Line Chart")
         if 'Year' in df.columns and 'Value' in df.columns and 'Category' in df.columns:
-            fig = px.line(df, x="Year", y="Value", color="Category", markers=True,
+            df_sorted = df.sort_values(by='Year')
+            fig = px.line(df_sorted, x="Year", y="Value", color="Category", markers=True,
                           title="Line Chart: Values by Year and Category")
             st.plotly_chart(fig)
         else:
