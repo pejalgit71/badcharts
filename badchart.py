@@ -78,6 +78,7 @@ elif chart_type == "Pie Chart":
 elif chart_type == "Line Chart":
     st.header("3. Line Chart")
     col1, col2 = st.columns(2)
+
     with col1:
         st.subheader("❌ Bad Line Chart")
         st.line_chart(df.select_dtypes(include='number').iloc[:, 0])
@@ -91,11 +92,26 @@ elif chart_type == "Line Chart":
 
     with col2:
         st.subheader("✅ Fixed Line Chart")
-        if 'Year' in df.columns and 'Value' in df.columns and 'Category' in df.columns:
-            df_sorted = df.sort_values(by='Year')
-            fig = px.line(df_sorted, x="Year", y="Value", color="Category", markers=True,
-                          title="Line Chart: Values by Year and Category")
-            st.plotly_chart(fig)
+        if {'Year', 'Value', 'Category'}.issubset(df.columns):
+            try:
+                # Ensure Year is numeric
+                df['Year'] = pd.to_numeric(df['Year'], errors='coerce')
+                df = df.dropna(subset=['Year', 'Value'])  # Drop rows with missing year or value
+                df['Year'] = df['Year'].astype(int)
+                df = df.sort_values(by=['Category', 'Year'])
+
+                fig = px.line(
+                    df,
+                    x='Year',
+                    y='Value',
+                    color='Category',
+                    markers=True,
+                    title="Line Chart: Values by Year and Category"
+                )
+                fig.update_traces(line=dict(width=2))  # Thicker lines for visibility
+                st.plotly_chart(fig, use_container_width=True)
+            except Exception as e:
+                st.error(f"Error rendering line chart: {e}")
         else:
             st.warning("Columns 'Year', 'Category', and 'Value' required.")
 
