@@ -148,19 +148,17 @@ elif chart_type == "Map Chart":
             ("No zoom/pan control", "Difficult to explore."),
             ("No color coding", "Everything looks the same.")
         ])
-
     with col2:
         st.subheader("✅ Fixed Map Chart")
         if {'Latitude', 'Longitude'}.issubset(df.columns):
             try:
-                # Ensure background map renders by setting API key to None (default open source tiles)
                 pdk.settings.mapbox_api_key = None
 
                 midpoint = (df['Latitude'].mean(), df['Longitude'].mean())
                 color_by = 'Category' if 'Category' in df.columns else None
                 radius_by = 'Value' if 'Value' in df.columns else None
 
-                layer = pdk.Layer(
+                scatter_layer = pdk.Layer(
                     "ScatterplotLayer",
                     data=df,
                     get_position='[Longitude, Latitude]',
@@ -169,16 +167,30 @@ elif chart_type == "Map Chart":
                     pickable=True,
                     auto_highlight=True
                 )
+
+                text_layer = pdk.Layer(
+                    "TextLayer",
+                    data=df,
+                    pickable=False,
+                    get_position='[Longitude, Latitude]',
+                    get_text='Category' if 'Category' in df.columns else 'Value',
+                    get_size=16,
+                    get_color=[0, 0, 0],
+                    get_angle=0,
+                    get_alignment_baseline="bottom"
+                )
+
                 view_state = pdk.ViewState(
                     latitude=midpoint[0],
                     longitude=midpoint[1],
-                    zoom=4,
+                    zoom=5,
                     pitch=0
                 )
+
                 r = pdk.Deck(
-                    map_style="road",
+                    map_style="mapbox://styles/mapbox/light-v9",
                     initial_view_state=view_state,
-                    layers=[layer],
+                    layers=[scatter_layer, text_layer],
                     tooltip={"text": "{Category}: {Value}"} if color_by and radius_by else None
                 )
                 st.pydeck_chart(r)
@@ -186,6 +198,43 @@ elif chart_type == "Map Chart":
                 st.error(f"Error rendering map: {e}")
         else:
             st.warning("Missing 'Latitude' and 'Longitude' columns for the improved map.")
+    # with col2:
+    #     st.subheader("✅ Fixed Map Chart")
+    #     if {'Latitude', 'Longitude'}.issubset(df.columns):
+    #         try:
+    #             # Ensure background map renders by setting API key to None (default open source tiles)
+    #             pdk.settings.mapbox_api_key = None
+
+    #             midpoint = (df['Latitude'].mean(), df['Longitude'].mean())
+    #             color_by = 'Category' if 'Category' in df.columns else None
+    #             radius_by = 'Value' if 'Value' in df.columns else None
+
+    #             layer = pdk.Layer(
+    #                 "ScatterplotLayer",
+    #                 data=df,
+    #                 get_position='[Longitude, Latitude]',
+    #                 get_fill_color="[180, 0, 200, 140]",
+    #                 get_radius=30000,
+    #                 pickable=True,
+    #                 auto_highlight=True
+    #             )
+    #             view_state = pdk.ViewState(
+    #                 latitude=midpoint[0],
+    #                 longitude=midpoint[1],
+    #                 zoom=4,
+    #                 pitch=0
+    #             )
+    #             r = pdk.Deck(
+    #                 map_style="road",
+    #                 initial_view_state=view_state,
+    #                 layers=[layer],
+    #                 tooltip={"text": "{Category}: {Value}"} if color_by and radius_by else None
+    #             )
+    #             st.pydeck_chart(r)
+    #         except Exception as e:
+    #             st.error(f"Error rendering map: {e}")
+    #     else:
+    #         st.warning("Missing 'Latitude' and 'Longitude' columns for the improved map.")
 
 
 elif chart_type == "Donut Chart":
