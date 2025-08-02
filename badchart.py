@@ -101,12 +101,13 @@ elif chart_type == "Line Chart":
 elif chart_type == "Map Chart":
     st.header("4. Map Chart")
     col1, col2 = st.columns(2)
+
     with col1:
         st.subheader("❌ Bad Map Chart")
-
         if {'Latitude', 'Longitude'}.issubset(df.columns):
             try:
-                st.map(df.rename(columns={'Latitude': 'latitude', 'Longitude': 'longitude'}))
+                renamed_df = df.rename(columns={"Latitude": "latitude", "Longitude": "longitude"})
+st.map(renamed_df[['latitude', 'longitude']])
             except Exception as e:
                 st.error("Map could not be rendered. Check Latitude and Longitude values.")
         else:
