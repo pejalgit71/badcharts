@@ -107,7 +107,7 @@ elif chart_type == "Map Chart":
         if {'Latitude', 'Longitude'}.issubset(df.columns):
             try:
                 renamed_df = df.rename(columns={"Latitude": "latitude", "Longitude": "longitude"})
-st.map(renamed_df[['latitude', 'longitude']])
+                st.map(renamed_df[['latitude', 'longitude']])
             except Exception as e:
                 st.error("Map could not be rendered. Check Latitude and Longitude values.")
         else:
